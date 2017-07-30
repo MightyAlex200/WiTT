@@ -1,4 +1,5 @@
 local player_to_id_text = {} -- Storage of players so the mod knows what huds to update
+local player_to_id_image = {}
 
 minetest.register_globalstep(function(dtime) -- This will run every tick, so around 20 times/second
     for _, player in ipairs(minetest:get_connected_players()) do -- Do everything below for each player in-game
@@ -6,8 +7,11 @@ minetest.register_globalstep(function(dtime) -- This will run every tick, so aro
 
         if lookat then
             player:hud_change(player_to_id_text[player], "text", describe_node(lookat)) -- If they are looking at something, display that
+            local node_object = minetest.registered_nodes[lookat.name]
+            player:hud_change(player_to_id_image[player], "text", handle_tiles(node_object.tiles))
         else
             player:hud_change(player_to_id_text[player], "text", "") -- If they are not looking at anything, do not display the text
+            player:hud_change(player_to_id_image[player], "text", "")            
         end
     end
 end)
@@ -17,9 +21,15 @@ minetest.register_on_joinplayer(function(player) -- Add the hud to all players
         hud_elem_type = "text",
         text = "test",
         number = 0xffffff,
-        direction = 2,
         position = {x = 0.5, y = 0.1},
-        alignment = {x = -0.5, y = 0}
+    })
+    player_to_id_image[player] = player:hud_add({
+        hud_elem_type = "image",
+        text = "",
+        scale = {x = 1, y = 1},
+        alignment = 0,
+        position = {x = 0.4, y = 0.1},        
+        offset = {x = 0, y = 0}
     })
 end)
 
@@ -60,4 +70,19 @@ end
 
 function capitalize(str) -- Capitalize every word in a string, looks good for node names
     return string.gsub(" "..str, "%W%l", string.upper):sub(2)
+end
+
+function handle_tiles(tiles)
+    -- TODO: Make better lol
+    local invalid = false
+    for i, v in pairs(tiles) do
+        if(type(v) ~= "string") then
+            invalid = true
+        end
+    end
+    if not invalid then
+        return minetest.inventorycube(tiles[1], tiles[6], tiles[5])
+    else
+        return ""
+    end
 end
