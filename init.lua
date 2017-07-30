@@ -57,6 +57,9 @@ end
 
 function describe_node(node) -- Return a string that describes the node and mod
     local mod, nodename = minetest.registered_nodes[node.name].mod_origin, minetest.registered_nodes[node.name].description
+    if nodename == "" then
+        nodename = node.name
+    end
     mod = remove_unneeded(capitalize(mod))
     nodename = remove_unneeded(capitalize(nodename))
     return
