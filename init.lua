@@ -1,20 +1,18 @@
-local player_to_id_text = {}
+local player_to_id_text = {} -- Storage of players so the mod knows what huds to update
 
-minetest.register_globalstep(function(dtime)
-    for _, player in ipairs(minetest:get_connected_players()) do
-        -- local player = minetest.get_player_by_name(name) 
-        -- if not player then return end
-        local lookat = get_looking_node(player)
+minetest.register_globalstep(function(dtime) -- This will run every tick, so around 20 times/second
+    for _, player in ipairs(minetest:get_connected_players()) do -- Do everything below for each player in-game
+        local lookat = get_looking_node(player) -- Get the node they're looking at
 
         if lookat then
-            player:hud_change(player_to_id_text[player], "text", describe_node(lookat))
+            player:hud_change(player_to_id_text[player], "text", describe_node(lookat)) -- If they are looking at something, display that
         else
-            player:hud_change(player_to_id_text[player], "text", "")
+            player:hud_change(player_to_id_text[player], "text", "") -- If they are not looking at anything, do not display the text
         end
     end
 end)
 
-minetest.register_on_joinplayer(function(player)
+minetest.register_on_joinplayer(function(player) -- Add the hud to all players
     player_to_id_text[player] = player:hud_add({
         hud_elem_type = "text",
         text = "test",
@@ -25,7 +23,7 @@ minetest.register_on_joinplayer(function(player)
     })
 end)
 
-function get_looking_node(player) 
+function get_looking_node(player) -- Return the node the given player is looking at or nil
     local lookat
     for i = 0, 10 do -- 10 is the maximum distance you can point to things in creative mode by default
         local lookvector = -- This variable will store what node we might be looking at
@@ -47,7 +45,7 @@ function get_looking_node(player)
     return lookat
 end
 
-function describe_node(node)
+function describe_node(node) -- Return a string that describes the node and mod
     local mod, nodename = minetest.registered_nodes[node.name].mod_origin, minetest.registered_nodes[node.name].description
     mod = remove_unneeded(capitalize(mod))
     nodename = remove_unneeded(capitalize(nodename))
@@ -56,10 +54,10 @@ function describe_node(node)
         "Mod: " .. mod .. "\n"
 end
 
-function remove_unneeded(str)
+function remove_unneeded(str) -- Remove characters like '-' and '_' to make the string look better
     return str:gsub("[_-]", " ")
 end
 
-function capitalize(str) 
+function capitalize(str) -- Capitalize every word in a string, looks good for node names
     return string.gsub(" "..str, "%W%l", string.upper):sub(2)
 end
