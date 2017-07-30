@@ -42,7 +42,7 @@ function get_looking_node(player)
         lookat = minetest.get_node_or_nil( -- This actually gets the node we might be looking at
             lookvector
         ) or lookat
-        if lookat ~= nil and lookat.name ~= "air" then break else lookat = nil end -- If we *are* looking at something, stop the loop and continue
+        if lookat ~= nil and lookat.name ~= "air" and lookat.name ~= "walking_light:light" then break else lookat = nil end -- If we *are* looking at something, stop the loop and continue
     end
     return lookat
 end
