@@ -38,8 +38,18 @@ function describe_node(node)
     local mod, nodename = string.match(node.name, "(.*):(.*)")
     mod = mod or "?"
     nodename = nodename or "?"
+    mod = remove_unneeded(capitalize(mod))
+    nodename = remove_unneeded(capitalize(nodename))
     return
         "Name: " .. nodename .. "\n" ..
         "Mod: " .. mod .. "\n" 
         -- "Description: " .. node.description
+end
+
+function remove_unneeded(str)
+    return str:gsub("[_-]", " ")
+end
+
+function capitalize(str) 
+    return str:gsub("(%l)(%w+)", function(a,b) return string.upper(a)..b end)
 end
