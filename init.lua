@@ -48,15 +48,12 @@ function get_looking_node(player)
 end
 
 function describe_node(node)
-    local mod, nodename = string.match(node.name, "(.*):(.*)")
-    mod = mod or "?"
-    nodename = nodename or "?"
+    local mod, nodename = minetest.registered_nodes[node.name].mod_origin, minetest.registered_nodes[node.name].description
     mod = remove_unneeded(capitalize(mod))
     nodename = remove_unneeded(capitalize(nodename))
     return
         "Name: " .. nodename .. "\n" ..
-        "Mod: " .. mod .. "\n" 
-        -- "Description: " .. node.description
+        "Mod: " .. mod .. "\n"
 end
 
 function remove_unneeded(str)
@@ -64,5 +61,5 @@ function remove_unneeded(str)
 end
 
 function capitalize(str) 
-    return str:gsub("(%l)(%w+)", function(a,b) return string.upper(a)..b end)
+    return string.gsub(" "..str, "%W%l", string.upper):sub(2)
 end
