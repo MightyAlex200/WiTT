@@ -8,7 +8,7 @@ minetest.register_globalstep(function(dtime) -- This will run every tick, so aro
         if lookat then
             player:hud_change(player_to_id_text[player], "text", describe_node(lookat)) -- If they are looking at something, display that
             local node_object = minetest.registered_nodes[lookat.name]
-            player:hud_change(player_to_id_image[player], "text", handle_tiles(node_object.tiles))
+            player:hud_change(player_to_id_image[player], "text", handle_tiles(node_object))
         else
             player:hud_change(player_to_id_text[player], "text", "") -- If they are not looking at anything, do not display the text
             player:hud_change(player_to_id_image[player], "text", "")            
@@ -75,17 +75,28 @@ function capitalize(str) -- Capitalize every word in a string, looks good for no
     return string.gsub(" "..str, "%W%l", string.upper):sub(2)
 end
 
-function handle_tiles(tiles)
-    -- TODO: Make better lol
-    local invalid = false
-    for i, v in pairs(tiles) do
-        if(type(v) ~= "string") then
-            invalid = true
+function handle_tiles(node)
+    local tiles = node.tiles
+
+    for i,v in pairs(tiles) do
+        if type(v) == "table" then
+            if tiles[i].name then
+                tiles[i] = tiles[i].name
+            else
+                return ""
+            end
         end
     end
-    if not invalid then
-        return minetest.inventorycube(tiles[1], tiles[6], tiles[5])
-    else
-        return ""
+
+    if node.drawtype == "normal" or node.drawtype == "allfaces" or node.drawtype == "allfaces_optional" or node.drawtype == "glasslike" or node.drawtype == "glasslike_framed" or node.drawtype == "glasslike_framed_optional" then
+        if #tiles == 1 then
+            return minetest.inventorycube(tiles[1], tiles[1], tiles[1])
+        elseif #tiles == 3 then
+            return minetest.inventorycube(tiles[1], tiles[3], tiles[3])
+        elseif #tiles == 6 then
+            return minetest.inventorycube(tiles[1], tiles[6], tiles[5])
+        end
     end
+
+    return ""
 end
