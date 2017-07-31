@@ -78,23 +78,25 @@ end
 function handle_tiles(node)
     local tiles = node.tiles
 
-    for i,v in pairs(tiles) do
-        if type(v) == "table" then
-            if tiles[i].name then
-                tiles[i] = tiles[i].name
-            else
-                return ""
+    if tiles then
+        for i,v in pairs(tiles) do
+            if type(v) == "table" then
+                if tiles[i].name then
+                    tiles[i] = tiles[i].name
+                else
+                    return ""
+                end
             end
         end
-    end
 
-    if node.drawtype == "normal" or node.drawtype == "allfaces" or node.drawtype == "allfaces_optional" or node.drawtype == "glasslike" or node.drawtype == "glasslike_framed" or node.drawtype == "glasslike_framed_optional" then
-        if #tiles == 1 then
-            return minetest.inventorycube(tiles[1], tiles[1], tiles[1])
-        elseif #tiles == 3 then
-            return minetest.inventorycube(tiles[1], tiles[3], tiles[3])
-        elseif #tiles == 6 then
-            return minetest.inventorycube(tiles[1], tiles[6], tiles[5])
+        if node.drawtype == "normal" or node.drawtype == "allfaces" or node.drawtype == "allfaces_optional" or node.drawtype == "glasslike" or node.drawtype == "glasslike_framed" or node.drawtype == "glasslike_framed_optional" then
+            if #tiles == 1 then
+                return minetest.inventorycube(tiles[1], tiles[1], tiles[1])
+            elseif #tiles == 3 then
+                return minetest.inventorycube(tiles[1], tiles[3], tiles[3])
+            elseif #tiles == 6 then
+                return minetest.inventorycube(tiles[1], tiles[6], tiles[5])
+            end
         end
     end
 
