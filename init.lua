@@ -1,18 +1,24 @@
 local player_to_id_text = {} -- Storage of players so the mod knows what huds to update
 local player_to_id_image = {}
+local player_to_cnode = {} -- Get the current looked at node
 
 minetest.register_globalstep(function(dtime) -- This will run every tick, so around 20 times/second
     for _, player in ipairs(minetest:get_connected_players()) do -- Do everything below for each player in-game
         local lookat = get_looking_node(player) -- Get the node they're looking at
 
         if lookat then
-            player:hud_change(player_to_id_text[player], "text", describe_node(lookat)) -- If they are looking at something, display that
-            local node_object = minetest.registered_nodes[lookat.name]
-            player:hud_change(player_to_id_image[player], "text", handle_tiles(node_object))
+            if player_to_cnode[player] ~= lookat.name then
+                player:hud_change(player_to_id_text[player], "text", describe_node(lookat)) -- If they are looking at something, display that
+                local node_object = minetest.registered_nodes[lookat.name]
+                player:hud_change(player_to_id_image[player], "text", handle_tiles(node_object))
+            end
+            player_to_cnode[player] = lookat.name
         else
             player:hud_change(player_to_id_text[player], "text", "") -- If they are not looking at anything, do not display the text
-            player:hud_change(player_to_id_image[player], "text", "")            
+            player:hud_change(player_to_id_image[player], "text", "")
+            player_to_cnode[player] = nil
         end
+
     end
 end)
 
