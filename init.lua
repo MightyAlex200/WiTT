@@ -17,7 +17,7 @@ minetest.register_globalstep(function(dtime) -- This will run every tick, so aro
 
         if player_to_animon[player] then
             player:hud_change(player_to_id_text[player], "position", {x = player_to_animtime[player], y = ypos})
-            player:hud_change(player_to_id_image[player], "position", {x = player_to_animtime[player] - 0.1, y = ypos})
+            player:hud_change(player_to_id_image[player], "position", {x = player_to_animtime[player], y = ypos})
         end
 
         if lookat then
@@ -42,6 +42,7 @@ minetest.register_on_joinplayer(function(player) -- Add the hud to all players
         hud_elem_type = "text",
         text = "test",
         number = 0xffffff,
+        alignment = {x = 1, y = 0},
         position = {x = 0.5, y = ypos},
     })
     player_to_id_image[player] = player:hud_add({
@@ -49,8 +50,8 @@ minetest.register_on_joinplayer(function(player) -- Add the hud to all players
         text = "",
         scale = {x = 1, y = 1},
         alignment = 0,
-        position = {x = 0.4, y = ypos},        
-        offset = {x = 0, y = 0}
+        position = {x = 0.5, y = ypos},        
+        offset = {x = -40, y = 0}
     })
 end)
 
