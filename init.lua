@@ -3,11 +3,14 @@ local player_to_id_image = {}
 local player_to_cnode = {} -- Get the current looked at node
 local player_to_animtime = {} -- For animation
 local player_to_animon = {} -- For disabling animation
+local player_to_enabled = {}
 
 local ypos = 0.1
 
 minetest.register_globalstep(function(dtime) -- This will run every tick, so around 20 times/second
     for _, player in ipairs(minetest:get_connected_players()) do -- Do everything below for each player in-game
+        if player_to_enabled[player] == nil then player_to_enabled[player] = true end
+        if not player_to_enabled[player] then return end
         local lookat = get_looking_node(player) -- Get the node they're looking at
 
         player_to_animtime[player] = math.min((player_to_animtime[player] or 0.4) + dtime, 0.5)
@@ -69,6 +72,31 @@ minetest.register_chatcommand("wanimon", {
 		local player = minetest.get_player_by_name(name)
 		if not player then return false end
         player_to_animon[player] = true
+        return true
+	end
+})
+
+minetest.register_chatcommand("wittoff", {
+	params = "",
+	description = "Turn WiTT off",
+	func = function(name)
+		local player = minetest.get_player_by_name(name)
+		if not player then return false end
+        player_to_enabled[player] = false
+        player:hud_change(player_to_id_text[player], "text", "")
+        player:hud_change(player_to_id_image[player], "text", "")
+        player_to_cnode[player] = nil
+        return true
+	end
+})
+
+minetest.register_chatcommand("witton", {
+	params = "",
+	description = "Turn WiTT on",
+	func = function(name)
+		local player = minetest.get_player_by_name(name)
+		if not player then return false end
+        player_to_enabled[player] = true
         return true
 	end
 })
