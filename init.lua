@@ -1,13 +1,25 @@
 local player_to_id_text = {} -- Storage of players so the mod knows what huds to update
 local player_to_id_image = {}
 local player_to_cnode = {} -- Get the current looked at node
+local player_to_animtime = {} -- For animation
+local player_to_animon = {} -- For disabling animation
+
+local ypos = 0.1
 
 minetest.register_globalstep(function(dtime) -- This will run every tick, so around 20 times/second
     for _, player in ipairs(minetest:get_connected_players()) do -- Do everything below for each player in-game
         local lookat = get_looking_node(player) -- Get the node they're looking at
 
+        player_to_animtime[player] = math.min((player_to_animtime[player] or 0.4) + dtime, 0.5)
+
+        if player_to_animon[player] then
+            player:hud_change(player_to_id_text[player], "position", {x = player_to_animtime[player], y = ypos})
+            player:hud_change(player_to_id_image[player], "position", {x = player_to_animtime[player] - 0.1, y = ypos})
+        end
+
         if lookat then
             if player_to_cnode[player] ~= lookat.name then
+                player_to_animtime[player] = nil
                 player:hud_change(player_to_id_text[player], "text", describe_node(lookat)) -- If they are looking at something, display that
                 local node_object = minetest.registered_nodes[lookat.name]
                 player:hud_change(player_to_id_image[player], "text", handle_tiles(node_object))
@@ -27,17 +39,39 @@ minetest.register_on_joinplayer(function(player) -- Add the hud to all players
         hud_elem_type = "text",
         text = "test",
         number = 0xffffff,
-        position = {x = 0.5, y = 0.1},
+        position = {x = 0.5, y = ypos},
     })
     player_to_id_image[player] = player:hud_add({
         hud_elem_type = "image",
         text = "",
         scale = {x = 1, y = 1},
         alignment = 0,
-        position = {x = 0.4, y = 0.1},        
+        position = {x = 0.4, y = ypos},        
         offset = {x = 0, y = 0}
     })
 end)
+
+minetest.register_chatcommand("wanimoff", {
+	params = "",
+	description = "Turn WiTT animations off",
+	func = function(name)
+		local player = minetest.get_player_by_name(name)
+		if not player then return false end
+        player_to_animon[player] = false
+        return true
+	end
+})
+
+minetest.register_chatcommand("wanimon", {
+	params = "",
+	description = "Turn WiTT animations on",
+	func = function(name)
+		local player = minetest.get_player_by_name(name)
+		if not player then return false end
+        player_to_animon[player] = true
+        return true
+	end
+})
 
 function get_looking_node(player) -- Return the node the given player is looking at or nil
     local lookat
