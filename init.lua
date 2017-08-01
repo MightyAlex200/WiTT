@@ -31,7 +31,7 @@ minetest.register_globalstep(function(dtime) -- This will run every tick, so aro
             end
             player_to_cnode[player] = lookat.name
         else
-            blank_player_hud() -- If they are not looking at anything, do not display the text
+            blank_player_hud(player) -- If they are not looking at anything, do not display the text
             player_to_cnode[player] = nil
         end
 
