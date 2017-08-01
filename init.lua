@@ -1,4 +1,5 @@
 local player_to_id_text = {} -- Storage of players so the mod knows what huds to update
+local player_to_id_mtext = {}
 local player_to_id_image = {}
 local player_to_cnode = {} -- Get the current looked at node
 local player_to_animtime = {} -- For animation
@@ -18,18 +19,22 @@ minetest.register_globalstep(function(dtime) -- This will run every tick, so aro
         if player_to_animon[player] then
             player:hud_change(player_to_id_text[player], "position", {x = player_to_animtime[player], y = ypos})
             player:hud_change(player_to_id_image[player], "position", {x = player_to_animtime[player], y = ypos})
+            player:hud_change(player_to_id_mtext[player], "position", {x = player_to_animtime[player], y = ypos+0.015})
         end
 
         if lookat then
             if player_to_cnode[player] ~= lookat.name then
                 player_to_animtime[player] = nil
-                player:hud_change(player_to_id_text[player], "text", describe_node(lookat)) -- If they are looking at something, display that
+                local nodename, mod = describe_node(lookat)
+                player:hud_change(player_to_id_text[player], "text", nodename) -- If they are looking at something, display that
+                player:hud_change(player_to_id_mtext[player], "text", mod)
                 local node_object = minetest.registered_nodes[lookat.name]
                 player:hud_change(player_to_id_image[player], "text", handle_tiles(node_object))
             end
             player_to_cnode[player] = lookat.name
         else
             player:hud_change(player_to_id_text[player], "text", "") -- If they are not looking at anything, do not display the text
+            player:hud_change(player_to_id_mtext[player], "text", "")
             player:hud_change(player_to_id_image[player], "text", "")
             player_to_cnode[player] = nil
         end
@@ -44,6 +49,13 @@ minetest.register_on_joinplayer(function(player) -- Add the hud to all players
         number = 0xffffff,
         alignment = {x = 1, y = 0},
         position = {x = 0.5, y = ypos},
+    })
+    player_to_id_mtext[player] = player:hud_add({
+        hud_elem_type = "text",
+        text = "test",
+        number = 0x2d62b7,
+        alignment = {x = 1, y = 0},
+        position = {x = 0.5, y = ypos+0.015},
     })
     player_to_id_image[player] = player:hud_add({
         hud_elem_type = "image",
@@ -85,6 +97,7 @@ minetest.register_chatcommand("wittoff", {
 		if not player then return false end
         player_to_enabled[player] = false
         player:hud_change(player_to_id_text[player], "text", "")
+        player:hud_change(player_to_id_mtext[player], "text", "")
         player:hud_change(player_to_id_image[player], "text", "")
         player_to_cnode[player] = nil
         return true
@@ -131,9 +144,7 @@ function describe_node(node) -- Return a string that describes the node and mod
     end
     mod = remove_unneeded(capitalize(mod))
     nodename = remove_unneeded(capitalize(nodename))
-    return
-        "Name: " .. nodename .. "\n" ..
-        "Mod: " .. mod .. "\n"
+    return nodename, mod
 end
 
 function remove_unneeded(str) -- Remove characters like '-' and '_' to make the string look better
