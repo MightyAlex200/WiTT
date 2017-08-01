@@ -17,9 +17,7 @@ minetest.register_globalstep(function(dtime) -- This will run every tick, so aro
         player_to_animtime[player] = math.min((player_to_animtime[player] or 0.4) + dtime, 0.5)
 
         if player_to_animon[player] then
-            player:hud_change(player_to_id_text[player], "position", {x = player_to_animtime[player], y = ypos})
-            player:hud_change(player_to_id_image[player], "position", {x = player_to_animtime[player], y = ypos})
-            player:hud_change(player_to_id_mtext[player], "position", {x = player_to_animtime[player], y = ypos+0.015})
+            update_player_hud_pos(player, player_to_animtime[player])
         end
 
         if lookat then
@@ -33,9 +31,7 @@ minetest.register_globalstep(function(dtime) -- This will run every tick, so aro
             end
             player_to_cnode[player] = lookat.name
         else
-            player:hud_change(player_to_id_text[player], "text", "") -- If they are not looking at anything, do not display the text
-            player:hud_change(player_to_id_mtext[player], "text", "")
-            player:hud_change(player_to_id_image[player], "text", "")
+            blank_player_hud() -- If they are not looking at anything, do not display the text
             player_to_cnode[player] = nil
         end
 
@@ -96,9 +92,7 @@ minetest.register_chatcommand("wittoff", {
 		local player = minetest.get_player_by_name(name)
 		if not player then return false end
         player_to_enabled[player] = false
-        player:hud_change(player_to_id_text[player], "text", "")
-        player:hud_change(player_to_id_mtext[player], "text", "")
-        player:hud_change(player_to_id_image[player], "text", "")
+        blank_player_hud(player)
         player_to_cnode[player] = nil
         return true
 	end
@@ -181,4 +175,17 @@ function handle_tiles(node)
     end
 
     return ""
+end
+
+function update_player_hud_pos(player, to_x, to_y)
+    to_y = to_y or ypos
+    player:hud_change(player_to_id_text[player], "position", {x = to_x, y = to_y})
+    player:hud_change(player_to_id_image[player], "position", {x = to_x, y = to_y})
+    player:hud_change(player_to_id_mtext[player], "position", {x = to_x, y = to_y+0.015})
+end
+
+function blank_player_hud(player)
+    player:hud_change(player_to_id_text[player], "text", "")
+    player:hud_change(player_to_id_mtext[player], "text", "")
+    player:hud_change(player_to_id_image[player], "text", "")
 end
