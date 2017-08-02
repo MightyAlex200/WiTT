@@ -63,48 +63,26 @@ minetest.register_on_joinplayer(function(player) -- Add the hud to all players
     })
 end)
 
-minetest.register_chatcommand("wanimoff", { -- Command to turn witt animations off
-	params = "",
-	description = "Turn WiTT animations off",
-	func = function(name)
+minetest.register_chatcommand("wanim", { -- Command to turn witt animations on/off
+	params = "<on/off>",
+	description = "Turn WiTT animations on/off",
+	func = function(name, param)
 		local player = minetest.get_player_by_name(name)
 		if not player then return false end
-        player_to_animon[player] = false
+        player_to_animon[player] = param == "on"
         return true
 	end
 })
 
-minetest.register_chatcommand("wanimon", { -- Command to turn witt animations on
-	params = "",
-	description = "Turn WiTT animations on",
-	func = function(name)
+minetest.register_chatcommand("witt", { -- Command to turn witt on/off
+	params = "<on/off>",
+	description = "Turn WiTT on/off",
+	func = function(name, param)
 		local player = minetest.get_player_by_name(name)
 		if not player then return false end
-        player_to_animon[player] = true
-        return true
-	end
-})
-
-minetest.register_chatcommand("wittoff", { -- Command to turn witt off
-	params = "",
-	description = "Turn WiTT off",
-	func = function(name)
-		local player = minetest.get_player_by_name(name)
-		if not player then return false end
-        player_to_enabled[player] = false
+        player_to_enabled[player] = param == "on"
         blank_player_hud(player)
         player_to_cnode[player] = nil
-        return true
-	end
-})
-
-minetest.register_chatcommand("witton", { -- Command to turn witt on
-	params = "",
-	description = "Turn WiTT on",
-	func = function(name)
-		local player = minetest.get_player_by_name(name)
-		if not player then return false end
-        player_to_enabled[player] = true
         return true
 	end
 })
