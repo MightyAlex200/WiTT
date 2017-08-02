@@ -6,108 +6,126 @@ local player_to_animtime = {} -- For animation
 local player_to_animon = {} -- For disabling animation
 local player_to_enabled = {} -- For disabling WiTT
 
+local clientmode = INIT == "client"
+
 local ypos = 0.1
 
-minetest.register_globalstep(function(dtime) -- This will run every tick, so around 20 times/second
-    for _, player in ipairs(minetest:get_connected_players()) do -- Do everything below for each player in-game
-        if player_to_enabled[player] == nil then player_to_enabled[player] = true end -- Enable by default
-        if not player_to_enabled[player] then return end -- Don't do anything if they have it disabled
-        local lookat = get_looking_node(player) -- Get the node they're looking at
+if not clientmode then
+    minetest.register_globalstep(function(dtime) -- This will run every tick, so around 20 times/second
+        for _, player in ipairs(minetest:get_connected_players()) do -- Do everything below for each player in-game
+            if player_to_enabled[player] == nil then player_to_enabled[player] = true end -- Enable by default
+            if not player_to_enabled[player] then return end -- Don't do anything if they have it disabled
+            local lookat = get_looking_node(player) -- Get the node they're looking at
 
-        player_to_animtime[player] = math.min((player_to_animtime[player] or 0.4) + dtime, 0.5) -- Animation calculation
+            player_to_animtime[player] = math.min((player_to_animtime[player] or 0.4) + dtime, 0.5) -- Animation calculation
 
-        if player_to_animon[player] then -- If they have animation on, display it
-            update_player_hud_pos(player, player_to_animtime[player])
-        end
-
-        if lookat then 
-            if player_to_cnode[player] ~= lookat.name then -- Only do anything if they are looking at a different type of block than before
-                player_to_animtime[player] = nil -- Reset the animation
-                local nodename, mod = describe_node(lookat) -- Get the details of the block in a nice looking way
-                player:hud_change(player_to_id_text[player], "text", nodename) -- If they are looking at something, display that
-                player:hud_change(player_to_id_mtext[player], "text", mod)
-                local node_object = minetest.registered_nodes[lookat.name] -- Get information about the block
-                player:hud_change(player_to_id_image[player], "text", handle_tiles(node_object)) -- Pass it to handle_tiles which will return a texture of that block (or nothing if it can't create it)
+            if player_to_animon[player] then -- If they have animation on, display it
+                update_player_hud_pos(player, player_to_animtime[player])
             end
-            player_to_cnode[player] = lookat.name -- Update the current node
-        else
-            blank_player_hud(player) -- If they are not looking at anything, do not display the text
-            player_to_cnode[player] = nil -- Update the current node
+
+            if lookat then 
+                if player_to_cnode[player] ~= lookat.name then -- Only do anything if they are looking at a different type of block than before
+                    player_to_animtime[player] = nil -- Reset the animation
+                    local nodename, mod = describe_node(lookat) -- Get the details of the block in a nice looking way
+                    player:hud_change(player_to_id_text[player], "text", nodename) -- If they are looking at something, display that
+                    player:hud_change(player_to_id_mtext[player], "text", mod)
+                    local node_object = minetest.registered_nodes[lookat.name] -- Get information about the block
+                    player:hud_change(player_to_id_image[player], "text", handle_tiles(node_object)) -- Pass it to handle_tiles which will return a texture of that block (or nothing if it can't create it)
+                end
+                player_to_cnode[player] = lookat.name -- Update the current node
+            else
+                blank_player_hud(player) -- If they are not looking at anything, do not display the text
+                player_to_cnode[player] = nil -- Update the current node
+            end
+
         end
+    end)
 
-    end
-end)
+    minetest.register_on_joinplayer(function(player) -- Add the hud to all players
+        player_to_id_text[player] = player:hud_add({ -- Add the block name text
+            hud_elem_type = "text",
+            text = "test",
+            number = 0xffffff,
+            alignment = {x = 1, y = 0},
+            position = {x = 0.5, y = ypos},
+        })
+        player_to_id_mtext[player] = player:hud_add({ -- Add the mod name text
+            hud_elem_type = "text",
+            text = "test",
+            number = 0x2d62b7,
+            alignment = {x = 1, y = 0},
+            position = {x = 0.5, y = ypos+0.015},
+        })
+        player_to_id_image[player] = player:hud_add({ -- Add the block image
+            hud_elem_type = "image",
+            text = "",
+            scale = {x = 1, y = 1},
+            alignment = 0,
+            position = {x = 0.5, y = ypos},        
+            offset = {x = -40, y = 0}
+        })
+    end)
 
-minetest.register_on_joinplayer(function(player) -- Add the hud to all players
-    player_to_id_text[player] = player:hud_add({ -- Add the block name text
-        hud_elem_type = "text",
-        text = "test",
-        number = 0xffffff,
-        alignment = {x = 1, y = 0},
-        position = {x = 0.5, y = ypos},
+    minetest.register_chatcommand("wanimoff", { -- Command to turn witt animations off
+        params = "",
+        description = "Turn WiTT animations off",
+        func = function(name)
+            local player = minetest.get_player_by_name(name)
+            if not player then return false end
+            player_to_animon[player] = false
+            return true
+        end
     })
-    player_to_id_mtext[player] = player:hud_add({ -- Add the mod name text
-        hud_elem_type = "text",
-        text = "test",
-        number = 0x2d62b7,
-        alignment = {x = 1, y = 0},
-        position = {x = 0.5, y = ypos+0.015},
+
+    minetest.register_chatcommand("wanimon", { -- Command to turn witt animations on
+        params = "",
+        description = "Turn WiTT animations on",
+        func = function(name)
+            local player = minetest.get_player_by_name(name)
+            if not player then return false end
+            player_to_animon[player] = true
+            return true
+        end
     })
-    player_to_id_image[player] = player:hud_add({ -- Add the block image
-        hud_elem_type = "image",
-        text = "",
-        scale = {x = 1, y = 1},
-        alignment = 0,
-        position = {x = 0.5, y = ypos},        
-        offset = {x = -40, y = 0}
+
+    minetest.register_chatcommand("wittoff", { -- Command to turn witt off
+        params = "",
+        description = "Turn WiTT off",
+        func = function(name)
+            local player = minetest.get_player_by_name(name)
+            if not player then return false end
+            player_to_enabled[player] = false
+            blank_player_hud(player)
+            player_to_cnode[player] = nil
+            return true
+        end
     })
-end)
 
-minetest.register_chatcommand("wanimoff", { -- Command to turn witt animations off
-	params = "",
-	description = "Turn WiTT animations off",
-	func = function(name)
-		local player = minetest.get_player_by_name(name)
-		if not player then return false end
-        player_to_animon[player] = false
-        return true
-	end
-})
+    minetest.register_chatcommand("witton", { -- Command to turn witt on
+        params = "",
+        description = "Turn WiTT on",
+        func = function(name)
+            local player = minetest.get_player_by_name(name)
+            if not player then return false end
+            player_to_enabled[player] = true
+            return true
+        end
+    })
+else
+    minetest.register_chatcommand("witt", {
+        params = "" ,
+        description = "What is this thing: Get information about the thing you're looking at.",
+        func = function() 
+            local lookat = get_looking_node(minetest.localplayer)
 
-minetest.register_chatcommand("wanimon", { -- Command to turn witt animations on
-	params = "",
-	description = "Turn WiTT animations on",
-	func = function(name)
-		local player = minetest.get_player_by_name(name)
-		if not player then return false end
-        player_to_animon[player] = true
-        return true
-	end
-})
-
-minetest.register_chatcommand("wittoff", { -- Command to turn witt off
-	params = "",
-	description = "Turn WiTT off",
-	func = function(name)
-		local player = minetest.get_player_by_name(name)
-		if not player then return false end
-        player_to_enabled[player] = false
-        blank_player_hud(player)
-        player_to_cnode[player] = nil
-        return true
-	end
-})
-
-minetest.register_chatcommand("witton", { -- Command to turn witt on
-	params = "",
-	description = "Turn WiTT on",
-	func = function(name)
-		local player = minetest.get_player_by_name(name)
-		if not player then return false end
-        player_to_enabled[player] = true
-        return true
-	end
-})
+            if lookat then
+                minetest.display_chat_message(describe_node(lookat))
+            else
+                minetest.display_chat_message("Unable to identify a node, try getting closer.")
+            end
+        end
+    })
+end
 
 function get_looking_node(player) -- Return the node the given player is looking at or nil
     local lookat
@@ -131,8 +149,11 @@ function get_looking_node(player) -- Return the node the given player is looking
     return lookat
 end
 
+minetest.get_node_def = minetest.get_node_def or function(n) return minetest.registered_nodes[n] end
+
 function describe_node(node) -- Return a string that describes the node and mod
-    local mod, nodename = minetest.registered_nodes[node.name].mod_origin, minetest.registered_nodes[node.name].description -- Get basic (not pretty) info
+    local node_def = minetest.get_node_def(node.name)
+    local mod, nodename = node_def.mod_origin, node_def.description -- Get basic (not pretty) info
     if nodename == "" then -- If it doesn't have a proper name, just use the technical one
         nodename = node.name
     end
