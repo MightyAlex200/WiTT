@@ -129,6 +129,7 @@ end
 
 function handle_tiles(node) -- Return an image of the tile
     local tiles = node.tiles
+    local resize_string = "^[resize:64x64"
 
     if tiles then -- Make sure every tile is a string
         for i,v in pairs(tiles) do
@@ -144,11 +145,11 @@ function handle_tiles(node) -- Return an image of the tile
         -- These are the types it can draw correctly
         if node.drawtype == "normal" or node.drawtype == "allfaces" or node.drawtype == "allfaces_optional" or node.drawtype == "glasslike" or node.drawtype == "glasslike_framed" or node.drawtype == "glasslike_framed_optional" then
             if #tiles == 1 then -- This type of block has only 1 image, so it must be on all faces
-                return minetest.inventorycube(tiles[1], tiles[1], tiles[1])
+                return minetest.inventorycube(tiles[1], tiles[1], tiles[1]) .. resize_string
             elseif #tiles == 3 then -- This type of block has 3 images, so it's probably 1 on top, 1 on bottom, the rest on the side
-                return minetest.inventorycube(tiles[1], tiles[3], tiles[3])
+                return minetest.inventorycube(tiles[1], tiles[3], tiles[3]) .. resize_string
             elseif #tiles == 6 then -- This one has 6 images, so display the ones we can
-                return minetest.inventorycube(tiles[1], tiles[6], tiles[5]) -- Not actually sure if 5 is the correct number but it's basically the same thing most of the time
+                return minetest.inventorycube(tiles[1], tiles[6], tiles[5]) .. resize_string -- Not actually sure if 5 is the correct number but it's basically the same thing most of the time
             end
         end
     end
