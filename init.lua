@@ -20,7 +20,7 @@ minetest.register_globalstep(function(dtime) -- This will run every tick, so aro
             update_player_hud_pos(player, player_to_animtime[player])
         end
 
-        if lookat then 
+        if lookat and minetest.registered_nodes[lookat.name] ~= nil then
             if player_to_cnode[player] ~= lookat.name then -- Only do anything if they are looking at a different type of block than before
                 player_to_animtime[player] = nil -- Reset the animation
                 local nodename, mod = describe_node(lookat) -- Get the details of the block in a nice looking way
