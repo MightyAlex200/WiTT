@@ -88,24 +88,18 @@ minetest.register_chatcommand("witt", { -- Command to turn witt on/off
 })
 
 function get_looking_node(player) -- Return the node the given player is looking at or nil
-    local lookat
-    for i = 0, 10 do -- 10 is the maximum distance you can point to things in creative mode by default
-        local lookvector = -- This variable will store what node we might be looking at
-            vector.add( -- This add function corrects for the players approximate height
-                vector.add( -- This add function applies the camera's position to the look vector
-                    vector.multiply( -- This multiply function adjusts the distance from the camera by the iteration of the loop we're in
-                        player:get_look_dir(), 
-                        i -- Goes from 0 to 10
-                    ), 
-                    player:get_pos()
-                ),
-                vector.new(0, 1.5, 0)
-            )
-        lookat = minetest.get_node_or_nil( -- This actually gets the node we might be looking at
-            lookvector
-        ) or lookat
-        if lookat ~= nil and lookat.name ~= "air" and lookat.name ~= "walking_light:light" then break else lookat = nil end -- If we *are* looking at something, stop the loop and continue
-    end
+    local player_pos = player:get_pos()
+    player_pos.y = player_pos.y + player:get_properties().eye_height
+    local raycast = minetest.raycast(player_pos, vector.add(player_pos, vector.multiply(player:get_look_dir(), 20)), false)
+    local pointed = raycast:next()
+    local lookat = nil
+    --
+    --  You can use minetest.line_of_sight which seems faster than raycast, but not precise while looking through nodeboxes.
+    --
+    --local no_nodes, lookat_pos = minetest.line_of_sight(player_pos, vector.add(player_pos, vector.multiply(player:get_look_dir(), 20)))
+    --if not no_nodes then lookat = minetest.get_node(lookat_pos)
+    --
+    if pointed and pointed.type == "node" then lookat = minetest.get_node(pointed.under) end
     return lookat
 end
 
